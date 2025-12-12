@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Void Clicker - Mega Edition</title>
+    <style>
+        :root {
+            --bg-color: #0d0015;
+            --panel-bg: #1a0525;
+            --card-bg: #2d0b42;
+            --primary: #bf00ff;
+            --accent: #ff00e6;
+            --text-main: #e0ccff;
+            --text-dim: #9e8fb2;
+            --error: #ff4444;
+            --success: #00ff88;
+            --warning: #ffaa00;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* === SIDEBAR MENU === */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -420px;
+            width: 420px;
+            height: 100%;
+            background: linear-gradient(180deg, #1a0525 0%, #0d0015 100%);
+            border-right: 2px solid var(--primary);
+            box-shadow: 5px 0 30px rgba(191, 0, 255, 0.5);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar.open { left: 0; }
+
+        .sidebar-content {
+            padding: 20px;
+            flex: 1;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 15px;
+        }
+
+        .sidebar-header h2 {
+            color: var(--accent);
+            margin: 0;
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .sidebar-user {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* TABS */
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4a1c6e;
+        }
+
+        .tab {
+            padding: 10px 5px;
+            background: rgba(45, 11, 66, 0.5);
+            border: 1px solid #4a1c6e;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+            font-size: 0.75rem;
+        }
+
+        .tab:hover {
+            background: rgba(45, 11, 66, 0.8);
+        }
+
+        .tab.active {
+            background: var(--card-bg);
+            border-color: var(--primary);
+            color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .menu-section {
+            margin-bottom: 25px;
+        }
+
+        .menu-title {
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #4a1c6e;
+            padding-bottom: 5px;
+        }
+
+        .stat-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .stat-value {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* REBIRTH SECTION */
+        .rebirth-box {
+            background: rgba(191, 0, 255, 0.1);
+            border: 2px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .rebirth-box h3 {
+            margin: 0 0 10px 0;
+            color: var(--success);
+            text-shadow: 0 0 10px var(--success);
+        }
+
+        .rebirth-info {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .rebirth-multiplier {
+            color: var(--success);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .btn-rebirth {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, var(--success), #00cc66);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-rebirth:hover:not(:disabled) {
+            box-shadow: 0 0 20px var(--success);
+            transform: translateY(-2px);
+        }
+
+        .btn-rebirth:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        /* UPGRADES IN SIDEBAR */
+        .upgrade-mini {
+            background: var(--card-bg);
+            border: 1px solid #4a1c6e;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .upgrade-mini:hover {
+            border-color: var(--accent);
+        }
+
+        .upgrade-name {
+            flex: 1;
+        }
+
+        .upgrade-level {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+
+        .btn-buy-mini {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .btn-buy-mini:hover:not(:disabled) {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .btn-buy-mini:disabled {
+            border-color: #444;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        /* ABILITY UPGRADE SECTION */
+        .ability-upgrade-box {
+            background: rgba(255, 0, 230, 0.1);
+            border: 2px solid var(--accent);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .ability-upgrade-box h3 {
+            margin: 0 0 10px 0;
+            color: var(--warning);
+            text-shadow: 0 0 10px var(--warning);
+            font-size: 0.9rem;
+        }
+
+        .ability-stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .btn-upgrade-ability {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            color: var(--warning);
+            border: 1px solid var(--warning);
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.3s;
+            margin-bottom: 5px;
+        }
+
+        .btn-upgrade-ability:hover:not(:disabled) {
+            background: var(--warning);
+            color: #000;
+            box-shadow: 0 0 15px var(--warning);
+        }
+
+        .btn-upgrade-ability:disabled {
+            border-color: #444;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .locked-message {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-style: italic;
+            padding: 20px;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            border-radius: 8px;
+        }
+
+        /* MATERIALS */
+        .materials-display {
+            background: rgba(45, 11, 66, 0.6);
+            border: 1px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .material-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #4a1c6e;
+        }
+
+        .material-item:last-child {
+            border-bottom: none;
+        }
+
+        .shop-item {
+            background: var(--card-bg);
+            border: 1px solid #4a1c6e;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-item:hover {
+            border-color: var(--accent);
+        }
+
+        .btn-buy-shop {
+            background: transparent;
+            color: var(--success);
+            border: 1px solid var(--success);
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .btn-buy-shop:hover:not(:disabled) {
+            background: var(--success);
+            color: #000;
+        }
+
+        .btn-buy-shop:disabled {
+            border-color: #444;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        /* CRAFTING */
+        .crafting-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .craft-slot {
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #4a1c6e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 2rem;
+        }
+
+        .craft-slot:hover {
+            border-color: var(--primary);
+            background: rgba(191, 0, 255, 0.1);
+        }
+
+        .craft-slot.filled {
+            border-color: var(--accent);
+            background: rgba(255, 0, 230, 0.2);
+        }
+
+        .craft-result {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid var(--success);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .btn-craft {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, var(--success), #00cc66);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-craft:hover:not(:disabled) {
+            box-shadow: 0 0 20px var(--success);
+            transform: translateY(-2px);
+        }
+
+        .btn-craft:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .material-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .material-btn {
+            padding: 10px;
+            background: var(--card-bg);
+            border: 1px solid #4a1c6e;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .material-btn:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .material-btn.selected {
+            border-color: var(--success);
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        /* RECIPE BOOK */
+        .recipe-item {
+            background: var(--card-bg);
+            border: 1px solid #4a1c6e;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+
+        .recipe-item.unlocked {
+            border-color: var(--success);
+        }
+
+        .recipe-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .recipe-pattern {
+            display: grid;
+            grid-template-columns: repeat(3, 30px);
+            gap: 3px;
+            margin: 10px 0;
+        }
+
+        .recipe-pattern-slot {
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #4a1c6e;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .btn-logout-sidebar {
+            background: transparent;
+            border: 2px solid var(--error);
+            color: var(--error);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: 0.3s;
+            text-transform: uppercase;
+            margin: 20px;
+        }
+
+        .btn-logout-sidebar:hover {
+            background: var(--error);
+            color: #fff;
+            box-shadow: 0 0 20px var(--error);
+        }
+
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(191, 0, 255, 0.3);
+        }
+
+        .menu-toggle:hover {
+            box-shadow: 0 0 25px var(--primary);
+            transform: scale(1.05);
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 998;
+            display: none;
+        }
+
+        .overlay.active { display: block; }
+
+        /* === AUTH SCREEN === */
+        .auth-screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #1a0525 0%, #000 100%);
+        }
+
+        .auth-box {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 40px;
+            width: 400px;
+            box-shadow: 0 0 50px rgba(191, 0, 255, 0.4);
+        }
+
+        .auth-box h1 {
+            text-align: center;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--primary);
+            border-radius: 5px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 38px;
+            cursor: pointer;
+            color: var(--accent);
+            font-size: 0.85rem;
+            user-select: none;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        .btn-auth {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 15px;
+            font-family: inherit;
+        }
+
+        .btn-auth:hover {
+            box-shadow: 0 0 20px var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .error-msg {
+            color: var(--error);
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .switch-text {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-dim);
+        }
+
+        .switch-text a {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* === GAME SCREEN === */
+        .game-container { 
+            display: none;
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .game-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: radial-gradient(circle at center, #1a0525 0%, #000 100%);
+        }
+
+        h1 { 
+            color: var(--primary); 
+            text-shadow: 0 0 10px var(--primary);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-box {
+            background: rgba(45, 11, 66, 0.8);
+            border: 1px solid var(--primary);
+            padding: 20px;
+            border-radius: 12px;
+            width: 80%;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(191, 0, 255, 0.2);
+        }
+
+        .resource {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            text-shadow: 0 0 5px var(--accent);
+        }
+
+        .enemy-container {
+            position: relative;
+            width: 400px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .enemy {
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle, var(--primary), #240030);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.05s, left 0.3s ease;
+            box-shadow: 0 0 40px var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            border: 2px solid #fff;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .enemy:active { transform: translateX(-50%) scale(0.92); }
+
+        .ability-container {
+            width: 80%;
+            margin-top: 30px;
+            height: 60px;
+            background: #222;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(191, 0, 255, 0.3);
+            transition: all 0.2s;
+        }
+
+        .ability-fill {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 100%;
+            background: linear-gradient(90deg, #5e0080, var(--primary));
+            z-index: 1;
+            transition: width 0.1s linear;
+        }
+
+        .ability-text {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .ability-container.disabled {
+            cursor: not-allowed;
+            border-color: #555;
+            box-shadow: none;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        .damage-text {
+            position: absolute;
+            font-weight: 900;
+            pointer-events: none;
+            animation: floatUp 0.6s ease-out forwards;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px #000;
+        }
+
+        .click-warning {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 68, 68, 0.95);
+            color: #fff;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 9999;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.8);
+            animation: fadeOut 1s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a0525; }
+        ::-webkit-scrollbar-thumb { background: #4a1c6e; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<!-- ========== AUTH SCREEN ========== -->
+<div id="auth-screen" class="auth-screen">
+    <div class="auth-box">
+        <div id="login-form">
+            <h1>🎮 ВХОД В ИГРУ</h1>
+            <div class="input-group">
+                <label>Minecraft Ник</label>
+                <input type="text" id="login-username" placeholder="Steve123" maxlength="16">
+            </div>
+            <div class="input-group">
+                <label>Пароль</label>
+                <input type="password" id="login-password" placeholder="••••••••">
+                <span class="password-toggle" onclick="togglePassword('login-password')">👁️ Показать</span>
+            </div>
+            <button class="btn-auth" onclick="handleLogin()">ВОЙТИ</button>
+            <div class="switch-text">
+                Нет аккаунта? <a onclick="showRegister()">Зарегистрироваться</a>
+            </div>
+            <div id="login-error" class="error-msg"></div>
+        </div>
+
+        <div id="register-form" style="display:none;">
+            <h1>📝 РЕГИСТРАЦИЯ</h1>
+            <div class="input-group">
+                <label>Minecraft Ник (3-16 символов)</label>
+                <input type="text" id="reg-username" placeholder="Notch" maxlength="16">
+            </div>
+            <div class="input-group">
+                <label>Пароль (минимум 4 символа)</label>
+                <input type="password" id="reg-password" placeholder="••••••••">
+                <span class="password-toggle" onclick="togglePassword('reg-password')">👁️ Показать</span>
+            </div>
+            <div class="input-group">
+                <label>Повтори пароль</label>
+                <input type="password" id="reg-password2" placeholder="••••••••">
+                <span class="password-toggle" onclick="togglePassword('reg-password2')">👁️ Показать</span>
+            </div>
+            <button class="btn-auth" onclick="handleRegister()">СОЗДАТЬ АККАУНТ</button>
+            <div class="switch-text">
+                Уже есть аккаунт? <a onclick="showLogin()">Войти</a>
+            </div>
+            <div id="register-error" class="error-msg"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== GAME SCREEN ========== -->
+<div id="game-screen" class="game-container">
+    
+    <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR MENU -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h2>⚔️ МЕНЮ</h2>
+                <div class="sidebar-user">Игрок: <span id="sidebar-username"></span></div>
+            </div>
+
+            <!-- TABS -->
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('main')">📊 Главное</div>
+                <div class="tab" onclick="switchTab('click')">⚔️ За клик</div>
+                <div class="tab" onclick="switchTab('passive')">🌀 Пассивный</div>
+                <div class="tab" onclick="switchTab('shop')" id="tab-shop">🛒 Магазин</div>
+                <div class="tab" onclick="switchTab('craft')" id="tab-craft">🔨 Верстак</div>
+                <div class="tab" onclick="switchTab('recipes')" id="tab-recipes">📖 Рецепты</div>
+            </div>
+
+            <!-- TAB: MAIN -->
+            <div id="content-main" class="tab-content active">
+                <div class="rebirth-box">
+                    <h3>🔄 ПЕРЕРОЖДЕНИЕ</h3>
+                    <div class="rebirth-info">
+                        Уровень: <span class="rebirth-multiplier" id="rebirth-level">0</span><br>
+                        Множитель: <span class="rebirth-multiplier" id="rebirth-mult">×1</span><br>
+                        <span style="font-size:0.75rem">Требуется: <span id="rebirth-cost">10M</span> золота</span>
+                    </div>
+                    <button id="btn-rebirth" class="btn-rebirth" onclick="doRebirth()">
+                        Переродиться
+                    </button>
+                </div>
+
+                <div id="ability-upgrades-section"></div>
+
+                <div class="menu-section">
+                    <div class="menu-title">📊 Статистика</div>
+                    <div class="stat-display">
+                        <span class="stat-label">Золото:</span>
+                        <span class="stat-value" id="sidebar-gold">0</span>
+                    </div>
+                    <div class="stat-display">
+                        <span class="stat-label">Урон/клик:</span>
+                        <span class="stat-value" id="sidebar-dpc">1</span>
+                    </div>
+                    <div class="stat-display">
+                        <span class="stat-label">Урон/сек:</span>
+                        <span class="stat-value" id="sidebar-dps">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: CLICK DAMAGE -->
+            <div id="content-click" class="tab-content">
+                <div class="menu-title">⚔️ УЛУЧШЕНИЯ УРОНА ЗА КЛИК (35 шт)</div>
+                <div id="click-upgrades-tab"></div>
+            </div>
+
+            <!-- TAB: PASSIVE DAMAGE -->
+            <div id="content-passive" class="tab-content">
+                <div class="menu-title">🌀 ПАССИВНЫЕ УЛУЧШЕНИЯ (35 шт)</div>
+                <div id="passive-upgrades-tab"></div>
+            </div>
+
+            <!-- TAB: SHOP -->
+            <div id="content-shop" class="tab-content">
+                <div id="shop-lock-message"></div>
+                <div class="materials-display" id="materials-display"></div>
+                <div id="shop-items"></div>
+            </div>
+
+            <!-- TAB: CRAFT -->
+            <div id="content-craft" class="tab-content">
+                <div id="craft-lock-message"></div>
+                <div id="craft-content" style="display:none;">
+                    <div class="menu-title">Выбери материал:</div>
+                    <div class="material-selector" id="material-selector"></div>
+                    
+                    <div class="menu-title" style="margin-top:20px">Верстак 3×3:</div>
+                    <div class="crafting-grid" id="crafting-grid"></div>
+
+                    <div class="craft-result" id="craft-result">
+                        <div style="font-size:0.85rem; color:var(--text-dim); margin-bottom:10px">
+                            Результат крафта
+                        </div>
+                        <div id="craft-output" style="font-size:2rem; margin-bottom:10px">❓</div>
+                        <button class="btn-craft" id="btn-craft" onclick="craftItem()" disabled>
+                            СКРАФТИТЬ
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: RECIPES -->
+            <div id="content-recipes" class="tab-content">
+                <div id="recipes-lock-message"></div>
+                <div id="recipes-list"></div>
+            </div>
+
+        </div>
+
+        <button class="btn-logout-sidebar" onclick="logout()">🚪 ВЫЙТИ</button>
+    </div>
+
+    <div class="menu-toggle" onclick="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="game-main">
+        <div class="center-panel">
+            <h1>VOID CLICKER</h1>
+            
+            <div class="stats-box">
+                <div style="color:var(--text-dim)">Эссенция</div>
+                <div class="resource" id="gold-display">0</div>
+            </div>
+            
+            <div class="stats-box" style="display:flex; justify-content: space-around;">
+                <div>DPS: <span id="dps-display" style="color:var(--primary)">0</span></div>
+                <div>Click: <span id="dpc-display" style="color:var(--primary)">1</span></div>
+            </div>
+
+            <div class="enemy-container">
+                <div class="enemy" id="enemy-btn" onclick="playerClick(event)">👁️</div>
+            </div>
+            
+            <div id="ability-btn" class="ability-container" onclick="activateAbility()">
+                <div id="ability-fill" class="ability-fill"></div>
+                <div id="ability-text" class="ability-text">SUPER HIT</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== CLICK RATE LIMITING ==========
+    
+    let clickCount = 0;
+    let clickTimer = null;
+    const MAX_CLICKS_PER_SECOND = 10;
+
+    function checkClickRate() {
+        clickCount++;
+        
+        if (clickCount > MAX_CLICKS_PER_SECOND) {
+            showClickWarning();
+            return false;
+        }
+        
+        if (!clickTimer) {
+            clickTimer = setTimeout(() => {
+                clickCount = 0;
+                clickTimer = null;
+            }, 1000);
+        }
+        
+        return true;
+    }
+
+    function showClickWarning() {
+        const warning = document.createElement('div');
+        warning.className = 'click-warning';
+        warning.textContent = '⚠️ Слишком быстро! Максимум 10 кликов/сек';
+        document.body.appendChild(warning);
+        setTimeout(() => warning.remove(), 1000);
+    }
+
+    // ========== MOVING ENEMY ==========
+    
+    let enemyPosition = 0;
+    let enemyDirection = 1;
+    let enemyMoveInterval = null;
+
+    function startEnemyMovement() {
+        if (enemyMoveInterval) return;
+        
+        enemyMoveInterval = setInterval(() => {
+            enemyPosition += enemyDirection * 10;
+            
+            if (enemyPosition >= 120) {
+                enemyPosition = 120;
+                enemyDirection = -1;
+            } else if (enemyPosition <= -120) {
+                enemyPosition = -120;
+                enemyDirection = 1;
+            }
+            
+            const enemy = document.getElementById('enemy-btn');
+            if (enemy) {
+                enemy.style.left = `calc(50% + ${enemyPosition}px)`;
+            }
+        }, 100);
+    }
+
+    // ========== PASSWORD TOGGLE ==========
+    
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const toggle = input.nextElementSibling;
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            toggle.textContent = '🙈 Скрыть';
+        } else {
+            input.type = 'password';
+            toggle.textContent = '👁️ Показать';
+        }
+    }
+
+    // ========== NUMBER FORMATTING ==========
+    
+    function formatNumber(num) {
+        if (num < 1000) return Math.floor(num).toString();
+        
+        const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'Ud', 'Dd', 'Td', 'Qad', 'Qid'];
+        const tier = Math.floor(Math.log10(Math.abs(num)) / 3);
+        
+        if (tier <= 0) return Math.floor(num).toString();
+        
+        const suffix = suffixes[tier] || 'e' + (tier * 3);
+        const scale = Math.pow(10, tier * 3);
+        const scaled = num / scale;
+        
+        return scaled.toFixed(2) + suffix;
+    }
+
+    // ========== MATERIALS & CRAFTING ==========
+
+    const MATERIALS = {
+        wood: { name: 'Древесина', icon: '🌳', cost: 100 },
+        stone: { name: 'Камень', icon: '⛰️', cost: 500 },
+        iron: { name: 'Железо', icon: '⚙️', cost: 2500 },
+        gold_mat: { name: 'Золотой слиток', icon: '🟡', cost: 10000 },
+        diamond: { name: 'Алмаз', icon: '💎', cost: 50000 },
+        void_essence: { name: 'Сущность Пустоты', icon: '🌀', cost: 250000 },
+        emerald: { name: 'Изумруд', icon: '💚', cost: 500000 },
+        ruby: { name: 'Рубин', icon: '🔴', cost: 1000000 },
+        obsidian: { name: 'Обсидиан', icon: '⬛', cost: 2500000 }
+    };
+
+    const RECIPES_DATA = {
+        recipe1: {
+            id: 'recipe1',
+            name: 'Деревянный щит',
+            icon: '🛡️',
+            cost: 5000,
+            pattern: ['wood','wood','wood','wood','stone','wood','wood','wood','wood'],
+            effect: 'dpc',
+            value: 500
+        },
+        recipe2: {
+            id: 'recipe2',
+            name: 'Железный меч',
+            icon: '⚔️',
+            cost: 25000,
+            pattern: ['iron','iron','iron','iron','stone','iron','iron','iron','iron'],
+            effect: 'dpc',
+            value: 12500
+        },
+        recipe3: {
+            id: 'recipe3',
+            name: 'Железная кирка',
+            icon: '⛏️',
+            cost: 10000,
+            pattern: ['stone','stone','stone','stone','iron','stone','stone','stone','stone'],
+            effect: 'dps',
+            value: 2500
+        },
+        recipe4: {
+            id: 'recipe4',
+            name: 'Золотая корона',
+            icon: '👑',
+            cost: 100000,
+            pattern: ['gold_mat','diamond','gold_mat','gold_mat','gold_mat','gold_mat','null','null','null'],
+            effect: 'dpc',
+            value: 50000
+        },
+        recipe5: {
+            id: 'recipe5',
+            name: 'Алмазная броня',
+            icon: '🛡️',
+            cost: 250000,
+            pattern: ['diamond','null','diamond','diamond','diamond','diamond','diamond','diamond','diamond'],
+            effect: 'dpc',
+            value: 125000
+        },
+        recipe6: {
+            id: 'recipe6',
+            name: 'Артефакт Бездны',
+            icon: '👁️',
+            cost: 500000,
+            pattern: ['diamond','diamond','diamond','void_essence','void_essence','void_essence','diamond','diamond','diamond'],
+            effect: 'ability_mult',
+            value: 2
+        },
+        recipe7: {
+            id: 'recipe7',
+            name: 'Изумрудный посох',
+            icon: '🪄',
+            cost: 1000000,
+            pattern: ['emerald','emerald','emerald','null','void_essence','null','null','diamond','null'],
+            effect: 'dpc',
+            value: 500000
+        },
+        recipe8: {
+            id: 'recipe8',
+            name: 'Рубиновый кристалл',
+            icon: '🔮',
+            cost: 2500000,
+            pattern: ['ruby','ruby','ruby','ruby','void_essence','ruby','ruby','ruby','ruby'],
+            effect: 'ability_mult',
+            value: 3
+        },
+        recipe9: {
+            id: 'recipe9',
+            name: 'Обсидиановое лезвие',
+            icon: '🗡️',
+            cost: 5000000,
+            pattern: ['obsidian','obsidian','obsidian','obsidian','void_essence','obsidian','null','diamond','null'],
+            effect: 'dpc',
+            value: 2500000
+        },
+        recipe10: {
+            id: 'recipe10',
+            name: 'Печь Бездны',
+            icon: '🔥',
+            cost: 500000,
+            pattern: ['obsidian','obsidian','obsidian','obsidian','void_essence','obsidian','obsidian','obsidian','obsidian'],
+            effect: 'dps',
+            value: 250000
+        },
+        recipe11: {
+            id: 'recipe11',
+            name: 'Портал в Край',
+            icon: '🌌',
+            cost: 10000000,
+            pattern: ['obsidian','void_essence','obsidian','void_essence','emerald','void_essence','obsidian','void_essence','obsidian'],
+            effect: 'ability_mult',
+            value: 5
+        },
+        recipe12: {
+            id: 'recipe12',
+            name: 'Крылья Дракона',
+            icon: '🐉',
+            cost: 7500000,
+            pattern: ['ruby','emerald','ruby','diamond','obsidian','diamond','ruby','emerald','ruby'],
+            effect: 'dps',
+            value: 3750000
+        }
+    };
+
+    let selectedMaterial = null;
+    let craftingSlots = Array(9).fill(null);
+    let currentTab = 'main';
+
+    // ========== TABS ==========
+
+    function switchTab(tab) {
+        currentTab = tab;
+        
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById('content-' + tab).classList.add('active');
+        event.target.classList.add('active');
+
+        if (tab === 'click') renderClickTab();
+        if (tab === 'passive') renderPassiveTab();
+        if (tab === 'shop') renderShopTab();
+        if (tab === 'craft') renderCraftTab();
+        if (tab === 'recipes') renderRecipesTab();
+    }
+
+    // ========== GAME STATE TEMPLATE ==========
+    
+    function createNewGameState() {
+        return {
+            gold: 0,
+            clickDamage: 1,
+            autoDamage: 0,
+            rebirths: 0,
+            materials: {
+                wood: 0,
+                stone: 0,
+                iron: 0,
+                gold_mat: 0,
+                diamond: 0,
+                void_essence: 0,
+                emerald: 0,
+                ruby: 0,
+                obsidian: 0
+            },
+            unlockedRecipes: [],
+            unlockedAbilities: ['ability1'],
+            abilityUpgrades: {
+                ability1: { damage: 0, cooldown: 0 },
+                ability2: { damage: 0, cooldown: 0 },
+                ability3: { damage: 0, cooldown: 0 },
+                ability4: { damage: 0, cooldown: 0 },
+                ability5: { damage: 0, cooldown: 0 }
+            },
+            upgrades: {
+                dagger: { level: 0, baseCost: 15, costMult: 1.15, dmg: 1, name: "🗡️ Теневой Нож" },
+                sword: { level: 0, baseCost: 100, costMult: 1.15, dmg: 7, name: "⚔️ Меч" },
+                axe: { level: 0, baseCost: 500, costMult: 1.15, dmg: 30, name: "🪓 Топор" },
+                hammer: { level: 0, baseCost: 2500, costMult: 1.15, dmg: 150, name: "🔨 Молот" },
+                scythe: { level: 0, baseCost: 10000, costMult: 1.15, dmg: 750, name: "☠️ Коса Смерти" },
+                staff: { level: 0, baseCost: 50000, costMult: 1.15, dmg: 3000, name: "🪄 Посох Пустоты" },
+                orb: { level: 0, baseCost: 250000, costMult: 1.15, dmg: 15000, name: "🔮 Сфера" },
+                void_blade: { level: 0, baseCost: 1000000, costMult: 1.15, dmg: 75000, name: "🌀 Клинок Пустоты" },
+                cosmos: { level: 0, baseCost: 5000000, costMult: 1.15, dmg: 375000, name: "🌌 Космос" },
+                eternal: { level: 0, baseCost: 25000000, costMult: 1.15, dmg: 1500000, name: "♾️ Вечность" },
+                lightning: { level: 0, baseCost: 100000000, costMult: 1.15, dmg: 7500000, name: "⚡ Молния" },
+                inferno: { level: 0, baseCost: 500000000, costMult: 1.15, dmg: 37500000, name: "🔥 Инферно" },
+                galaxy: { level: 0, baseCost: 2500000000, costMult: 1.15, dmg: 187500000, name: "🌠 Галактика" },
+                dimension: { level: 0, baseCost: 12500000000, costMult: 1.15, dmg: 937500000, name: "🔷 Измерение" },
+                reality: { level: 0, baseCost: 62500000000, costMult: 1.15, dmg: 4687500000, name: "🌐 Реальность" },
+                quantum: { level: 0, baseCost: 312500000000, costMult: 1.15, dmg: 23437500000, name: "⚛️ Квантум" },
+                singularity: { level: 0, baseCost: 1562500000000, costMult: 1.15, dmg: 117187500000, name: "⚫ Сингулярность" },
+                multiverse: { level: 0, baseCost: 7812500000000, costMult: 1.15, dmg: 585937500000, name: "🌍 Мультивселенная" },
+                infinity: { level: 0, baseCost: 39062500000000, costMult: 1.15, dmg: 2929687500000, name: "∞ Бесконечность" },
+                god_hand: { level: 0, baseCost: 195312500000000, costMult: 1.15, dmg: 14648437500000, name: "🙏 Рука Бога" },
+                transcendence: { level: 0, baseCost: 976562500000000, costMult: 1.15, dmg: 73242187500000, name: "🕉️ Трансцендентность" },
+                apocalypse: { level: 0, baseCost: 4882812500000000, costMult: 1.15, dmg: 366210937500000, name: "💀 Апокалипсис" },
+                genesis: { level: 0, baseCost: 24414062500000000, costMult: 1.15, dmg: 1831054687500000, name: "🌱 Генезис" },
+                nebula: { level: 0, baseCost: 122070312500000000, costMult: 1.15, dmg: 9155273437500000, name: "🌌 Туманность" },
+                supernova: { level: 0, baseCost: 610351562500000000, costMult: 1.15, dmg: 45776367187500000, name: "💥 Сверхновая" },
+                blackhole: { level: 0, baseCost: 3051757812500000000, costMult: 1.15, dmg: 228881835937500000, name: "🕳️ Черная Дыра" },
+                universe: { level: 0, baseCost: 15258789062500000000, costMult: 1.15, dmg: 1144409179687500000, name: "🌐 Вселенная" },
+                hyperspace: { level: 0, baseCost: 76293945312500000000, costMult: 1.15, dmg: 5722045898437500000, name: "🔮 Гиперпространство" },
+                timewarp: { level: 0, baseCost: 381469726562500000000, costMult: 1.15, dmg: 28610229492187500000, name: "⏰ Временной Разлом" },
+                eternity_core: { level: 0, baseCost: 1907348632812500000000, costMult: 1.15, dmg: 143051147460937500000, name: "♾️ Ядро Вечности" },
+                omnipotence: { level: 0, baseCost: 9536743164062500000000, costMult: 1.15, dmg: 715255737304687500000, name: "👁️‍🗨️ Всемогущество" },
+                void_emperor: { level: 0, baseCost: 47683715820312500000000, costMult: 1.15, dmg: 3576278686523437500000, name: "👑 Император Пустоты" },
+                cosmic_throne: { level: 0, baseCost: 238418579101562500000000, costMult: 1.15, dmg: 17881393432617187500000, name: "🪑 Космический Трон" },
+                absolute_zero: { level: 0, baseCost: 1192092895507812500000000, costMult: 1.15, dmg: 89406967163085937500000, name: "❄️ Абсолютный Ноль" },
+                one_above_all: { level: 0, baseCost: 5960464477539062500000000, costMult: 1.15, dmg: 447034835815429687500000, name: "🌟 Тот Кто Выше Всех" }
+            },
+            minions: {
+                wisp: { level: 0, baseCost: 50, costMult: 1.15, dps: 3, name: "✨ Огонек" },
+                ghost: { level: 0, baseCost: 300, costMult: 1.15, dps: 7, name: "👻 Призрак" },
+                demon: { level: 0, baseCost: 1500, costMult: 1.15, dps: 22, name: "😈 Демон Бездны" },
+                lich: { level: 0, baseCost: 7500, costMult: 1.15, dps: 75, name: "💀 Лич" },
+                dragon: { level: 0, baseCost: 40000, costMult: 1.15, dps: 300, name: "🐉 Дракон" },
+                titan: { level: 0, baseCost: 200000, costMult: 1.15, dps: 1500, name: "⚡ Титан" },
+                ancient: { level: 0, baseCost: 1000000, costMult: 1.15, dps: 7500, name: "🗿 Древний" },
+                elder: { level: 0, baseCost: 5000000, costMult: 1.15, dps: 37500, name: "👴 Старейшина" },
+                god: { level: 0, baseCost: 25000000, costMult: 1.15, dps: 187500, name: "⚡ Бог" },
+                creator: { level: 0, baseCost: 125000000, costMult: 1.15, dps: 937500, name: "🌟 Создатель" },
+                shadow: { level: 0, baseCost: 625000000, costMult: 1.15, dps: 4687500, name: "🌑 Тень" },
+                phoenix: { level: 0, baseCost: 3125000000, costMult: 1.15, dps: 23437500, name: "🦅 Феникс" },
+                void_lord: { level: 0, baseCost: 15625000000, costMult: 1.15, dps: 117187500, name: "🕳️ Лорд Пустоты" },
+                celestial: { level: 0, baseCost: 78125000000, costMult: 1.15, dps: 585937500, name: "🌟 Небожитель" },
+                omega: { level: 0, baseCost: 390625000000, costMult: 1.15, dps: 2929687500, name: "Ω Омега" },
+                archon: { level: 0, baseCost: 1953125000000, costMult: 1.15, dps: 14648437500, name: "👑 Архонт" },
+                primordial: { level: 0, baseCost: 9765625000000, costMult: 1.15, dps: 73242187500, name: "🌊 Первозданный" },
+                cosmic_entity: { level: 0, baseCost: 48828125000000, costMult: 1.15, dps: 366210937500, name: "🪐 Космическая Сущность" },
+                all_father: { level: 0, baseCost: 244140625000000, costMult: 1.15, dps: 1831054687500, name: "👁️ Всеотец" },
+                absolute: { level: 0, baseCost: 1220703125000000, costMult: 1.15, dps: 9155273437500, name: "🔳 Абсолют" },
+                astral_watcher: { level: 0, baseCost: 6103515625000000, costMult: 1.15, dps: 45776367187500, name: "👁️ Астральный Наблюдатель" },
+                void_reaper: { level: 0, baseCost: 30517578125000000, costMult: 1.15, dps: 228881835937500, name: "💀 Жнец Пустоты" },
+                star_forger: { level: 0, baseCost: 152587890625000000, costMult: 1.15, dps: 1144409179687500, name: "🔥 Кузнец Звезд" },
+                dimension_walker: { level: 0, baseCost: 762939453125000000, costMult: 1.15, dps: 5722045898437500, name: "🚶 Ходок Измерений" },
+                time_keeper: { level: 0, baseCost: 3814697265625000000, costMult: 1.15, dps: 28610229492187500, name: "⏳ Хранитель Времени" },
+                reality_bender: { level: 0, baseCost: 19073486328125000000, costMult: 1.15, dps: 143051147460937500, name: "🌀 Искажатель Реальности" },
+                nexus_guardian: { level: 0, baseCost: 95367431640625000000, costMult: 1.15, dps: 715255737304687500, name: "🛡️ Страж Нексуса" },
+                entropy_master: { level: 0, baseCost: 476837158203125000000, costMult: 1.15, dps: 3576278686523437500, name: "💫 Мастер Энтропии" },
+                chaos_titan: { level: 0, baseCost: 2384185791015625000000, costMult: 1.15, dps: 17881393432617187500, name: "💥 Титан Хаоса" },
+                order_sentinel: { level: 0, baseCost: 11920928955078125000000, costMult: 1.15, dps: 89406967163085937500, name: "⚖️ Страж Порядка" },
+                balance_keeper: { level: 0, baseCost: 59604644775390625000000, costMult: 1.15, dps: 447034835815429687500, name: "☯️ Хранитель Баланса" },
+                alpha_omega: { level: 0, baseCost: 298023223876953125000000, costMult: 1.15, dps: 2235174179077148437500, name: "Α&Ω Альфа и Омега" },
+                existence_itself: { level: 0, baseCost: 1490116119384765625000000, costMult: 1.15, dps: 11175870895385742187500, name: "🌐 Само Существование" },
+                beyond_comprehension: { level: 0, baseCost: 7450580596923828125000000, costMult: 1.15, dps: 55879354476928710937500, name: "❓ За Гранью Понимания" },
+                the_one: { level: 0, baseCost: 37252902984619140625000000, costMult: 1.15, dps: 279396772384643554687500, name: "1️⃣ Единственный" }
+            }
+        };
+    }
+
+    let gameState = createNewGameState();
+    let gameLoopInterval = null;
+
+    const ABILITIES = {
+        ability1: {
+            name: "SUPER HIT",
+            icon: "💥",
+            baseCooldown: 5000,
+            baseMultiplier: 20,
+            requiredRebirths: 0
+        },
+        ability2: {
+            name: "MEGA STRIKE",
+            icon: "⚡",
+            baseCooldown: 4500,
+            baseMultiplier: 30,
+            requiredRebirths: 1
+        },
+        ability3: {
+            name: "VOID BLAST",
+            icon: "🌀",
+            baseCooldown: 4000,
+            baseMultiplier: 50,
+            requiredRebirths: 2
+        },
+        ability4: {
+            name: "COSMIC FURY",
+            icon: "🌌",
+            baseCooldown: 3500,
+            baseMultiplier: 80,
+            requiredRebirths: 3
+        },
+        ability5: {
+            name: "ULTIMATE END",
+            icon: "💀",
+            baseCooldown: 3000,
+            baseMultiplier: 120,
+            requiredRebirths: 4
+        }
+    };
+
+    let currentAbility = 'ability1';
+    let abilityReady = true;
+    let abilityTimerId = null;
+
+    function getAbilityMultiplier(abilityId) {
+        const ability = ABILITIES[abilityId];
+        const upgrades = gameState.abilityUpgrades[abilityId];
+        return ability.baseMultiplier + (upgrades.damage * 5);
+    }
+
+    function getAbilityCooldown(abilityId) {
+        const ability = ABILITIES[abilityId];
+        const upgrades = gameState.abilityUpgrades[abilityId];
+        const reduction = upgrades.cooldown * 200;
+        return Math.max(1000, ability.baseCooldown - reduction);
+    }
+
+    // ========== RENDER CLICK TAB ==========
+
+    function renderClickTab() {
+        const container = document.getElementById('click-upgrades-tab');
+        container.innerHTML = '';
+
+        const renderItem = (key, item) => {
+            const cost = Math.floor(item.baseCost * Math.pow(item.costMult, item.level));
+            const mult = getRebirthMultiplier();
+            const statValue = item.dmg * mult;
+            
+            const div = document.createElement('div');
+            div.className = 'upgrade-mini';
+            div.innerHTML = `
+                <div class="upgrade-name">
+                    <div>${item.name}</div>
+                    <div class="upgrade-level">Lvl ${item.level} | +${formatNumber(statValue)}</div>
+                </div>
+                <button class="btn-buy-mini" onclick="buyUpgrade('upgrades', '${key}')" 
+                    ${gameState.gold < cost ? 'disabled' : ''}>
+                    ${formatNumber(cost)}
+                </button>
+            `;
+            container.appendChild(div);
+        };
+
+        for (const [key, item] of Object.entries(gameState.upgrades)) {
+            renderItem(key, item);
+        }
+    }
+
+    // ========== RENDER PASSIVE TAB ==========
+
+    function renderPassiveTab() {
+        const container = document.getElementById('passive-upgrades-tab');
+        container.innerHTML = '';
+
+        const renderItem = (key, item) => {
+            const cost = Math.floor(item.baseCost * Math.pow(item.costMult, item.level));
+            const mult = getRebirthMultiplier();
+            const statValue = item.dps * mult;
+            
+            const div = document.createElement('div');
+            div.className = 'upgrade-mini';
+            div.innerHTML = `
+                <div class="upgrade-name">
+                    <div>${item.name}</div>
+                    <div class="upgrade-level">Lvl ${item.level} | +${formatNumber(statValue)}/s</div>
+                </div>
+                <button class="btn-buy-mini" onclick="buyUpgrade('minions', '${key}')" 
+                    ${gameState.gold < cost ? 'disabled' : ''}>
+                    ${formatNumber(cost)}
+                </button>
+            `;
+            container.appendChild(div);
+        };
+
+        for (const [key, item] of Object.entries(gameState.minions)) {
+            renderItem(key, item);
+        }
+    }
+
+    // ========== CRAFTING LOGIC ==========
+
+    function selectMaterial(mat) {
+        selectedMaterial = mat;
+        renderMaterialSelector();
+    }
+
+    function placeMaterial(slotIndex) {
+        if (selectedMaterial && gameState.materials[selectedMaterial] > 0) {
+            craftingSlots[slotIndex] = selectedMaterial;
+            renderCraftingGrid();
+            checkRecipe();
+        }
+    }
+
+    function clearSlot(slotIndex) {
+        craftingSlots[slotIndex] = null;
+        renderCraftingGrid();
+        checkRecipe();
+    }
+
+    function checkRecipe() {
+        const pattern = craftingSlots.join(',');
+        
+        for (let recipeId of gameState.unlockedRecipes) {
+            const recipe = RECIPES_DATA[recipeId];
+            
+            if (recipe.pattern.join(',') === pattern) {
+                document.getElementById('craft-output').textContent = recipe.icon;
+                document.getElementById('btn-craft').disabled = false;
+                return;
+            }
+        }
+        
+        document.getElementById('craft-output').textContent = '❓';
+        document.getElementById('btn-craft').disabled = true;
+    }
+
+    function craftItem() {
+        const pattern = craftingSlots.join(',');
+        let foundRecipe = null;
+
+        for (let recipeId of gameState.unlockedRecipes) {
+            const recipe = RECIPES_DATA[recipeId];
+            
+            if (recipe.pattern.join(',') === pattern) {
+                foundRecipe = recipe;
+                break;
+            }
+        }
+        
+        if (!foundRecipe) return;
+
+        const materials = {};
+        for (let mat of craftingSlots) {
+            if (mat) materials[mat] = (materials[mat] || 0) + 1;
+        }
+
+        for (let mat in materials) {
+            if (gameState.materials[mat] < materials[mat]) {
+                alert('❌ Недостаточно материалов!');
+                return;
+            }
+        }
+
+        for (let mat in materials) {
+            gameState.materials[mat] -= materials[mat];
+        }
+
+        if (foundRecipe.effect === 'dpc') {
+            gameState.clickDamage += foundRecipe.value / 2;
+        } else if (foundRecipe.effect === 'dps') {
+            gameState.autoDamage += foundRecipe.value / 2;
+        } else if (foundRecipe.effect === 'ability_mult') {
+            gameState.abilityUpgrades[currentAbility].damage += foundRecipe.value;
+        }
+
+        alert(`✅ Создан предмет: ${foundRecipe.name} ${foundRecipe.icon}`);
+
+        craftingSlots = Array(9).fill(null);
+        renderCraftingGrid();
+        renderMaterials();
+        renderRecipesList();
+        updateUI();
+        saveGame();
+    }
+
+    function renderMaterials() {
+        const container = document.getElementById('materials-display');
+        container.innerHTML = '';
+
+        for (let [key, mat] of Object.entries(MATERIALS)) {
+            const div = document.createElement('div');
+            div.className = 'material-item';
+            div.innerHTML = `
+                <span>${mat.icon} ${mat.name}</span>
+                <span style="color:var(--accent); font-weight:bold">${gameState.materials[key]}</span>
+            `;
+            container.appendChild(div);
+        }
+    }
+
+    function renderShopTab() {
+        if (gameState.rebirths < 1) {
+            document.getElementById('shop-lock-message').innerHTML = `
+                <div class="locked-message">
+                    🔒 Магазин откроется после первого перерождения
+                </div>
+            `;
+            document.getElementById('materials-display').style.display = 'none';
+            document.getElementById('shop-items').style.display = 'none';
+        } else {
+            document.getElementById('shop-lock-message').innerHTML = '';
+            document.getElementById('materials-display').style.display = 'block';
+            document.getElementById('shop-items').style.display = 'block';
+            renderMaterials();
+            renderShop();
+        }
+    }
+
+    function renderShop() {
+        const container = document.getElementById('shop-items');
+        container.innerHTML = '';
+
+        for (let [key, mat] of Object.entries(MATERIALS)) {
+            const div = document.createElement('div');
+            div.className = 'shop-item';
+            div.innerHTML = `
+                <div>
+                    <div style="font-weight:bold; font-size:0.9rem">${mat.icon} ${mat.name}</div>
+                    <div style="font-size:0.75rem; color:var(--text-dim)">${formatNumber(mat.cost)} золота</div>
+                </div>
+                <button class="btn-buy-shop" onclick="buyMaterial('${key}')" 
+                    ${gameState.gold < mat.cost ? 'disabled' : ''}>
+                    КУПИТЬ
+                </button>
+            `;
+            container.appendChild(div);
+        }
+    }
+
+    function buyMaterial(key) {
+        const mat = MATERIALS[key];
+        if (gameState.gold >= mat.cost) {
+            gameState.gold -= mat.cost;
+            gameState.materials[key]++;
+            renderMaterials();
+            renderShop();
+            updateUI();
+        }
+    }
+
+    function renderCraftTab() {
+        if (gameState.rebirths < 1) {
+            document.getElementById('craft-lock-message').innerHTML = `
+                <div class="locked-message">
+                    🔒 Верстак откроется после первого перерождения
+                </div>
+            `;
+            document.getElementById('craft-content').style.display = 'none';
+        } else {
+            document.getElementById('craft-lock-message').innerHTML = '';
+            document.getElementById('craft-content').style.display = 'block';
+            renderCraftingGrid();
+            renderMaterialSelector();
+        }
+    }
+
+    function renderCraftingGrid() {
+        const grid = document.getElementById('crafting-grid');
+        grid.innerHTML = '';
+
+        for (let i = 0; i < 9; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'craft-slot';
+            
+            if (craftingSlots[i]) {
+                slot.classList.add('filled');
+                slot.textContent = MATERIALS[craftingSlots[i]].icon;
+                slot.onclick = () => clearSlot(i);
+            } else {
+                slot.onclick = () => placeMaterial(i);
+            }
+
+            grid.appendChild(slot);
+        }
+    }
+
+    function renderMaterialSelector() {
+        const selector = document.getElementById('material-selector');
+        selector.innerHTML = '';
+
+        for (let [key, mat] of Object.entries(MATERIALS)) {
+            const btn = document.createElement('div');
+            btn.className = 'material-btn';
+            if (selectedMaterial === key) btn.classList.add('selected');
+            btn.innerHTML = `${mat.icon}<br><span style="font-size:0.7rem">${gameState.materials[key]}</span>`;
+            btn.onclick = () => selectMaterial(key);
+            selector.appendChild(btn);
+        }
+    }
+
+    function renderRecipesTab() {
+        if (gameState.rebirths < 1) {
+            document.getElementById('recipes-lock-message').innerHTML = `
+                <div class="locked-message">
+                    🔒 Книга рецептов откроется после первого перерождения
+                </div>
+            `;
+            document.getElementById('recipes-list').style.display = 'none';
+        } else {
+            document.getElementById('recipes-lock-message').innerHTML = '';
+            document.getElementById('recipes-list').style.display = 'block';
+            renderRecipesList();
+        }
+    }
+
+    function renderRecipesList() {
+        const container = document.getElementById('recipes-list');
+        container.innerHTML = '';
+
+        for (let [id, recipe] of Object.entries(RECIPES_DATA)) {
+            const unlocked = gameState.unlockedRecipes.includes(id);
+            
+            const div = document.createElement('div');
+            div.className = 'recipe-item';
+            if (unlocked) div.classList.add('unlocked');
+            
+            if (unlocked) {
+                div.innerHTML = `
+                    <div class="recipe-header">
+                        <div style="font-weight:bold; color:var(--success)">${recipe.icon} ${recipe.name}</div>
+                        <div style="font-size:0.75rem; color:var(--success)">✅ Разблокирован</div>
+                    </div>
+                    <div class="recipe-pattern">
+                        ${recipe.pattern.map(m => `<div class="recipe-pattern-slot">${m === 'null' ? '' : MATERIALS[m].icon}</div>`).join('')}
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-dim)">
+                        Эффект: ${recipe.effect === 'dpc' ? '+' + formatNumber(recipe.value / 2) + ' урона' : 
+                                  recipe.effect === 'dps' ? '+' + formatNumber(recipe.value / 2) + ' DPS' :
+                                  '+' + recipe.value + ' к способности'}
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="recipe-header">
+                        <div style="font-weight:bold">🔒 ${recipe.name}</div>
+                        <button class="btn-buy-shop" onclick="unlockRecipe('${id}')" 
+                            ${gameState.gold < recipe.cost ? 'disabled' : ''}>
+                            ${formatNumber(recipe.cost)}
+                        </button>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-dim); margin-top:8px">
+                        Купи рецепт, чтобы узнать как крафтить
+                    </div>
+                `;
+            }
+            
+            container.appendChild(div);
+        }
+    }
+
+    function unlockRecipe(id) {
+        const recipe = RECIPES_DATA[id];
+        if (gameState.gold >= recipe.cost) {
+            gameState.gold -= recipe.cost;
+            gameState.unlockedRecipes.push(id);
+            renderRecipesList();
+            updateUI();
+            saveGame();
+            alert(`✅ Рецепт "${recipe.name}" разблокирован!`);
+        }
+    }
+
+    // ========== ABILITY UPGRADES ==========
+
+    function renderAbilityUpgrades() {
+        const section = document.getElementById('ability-upgrades-section');
+        section.innerHTML = '';
+
+        for (let [abilityId, ability] of Object.entries(ABILITIES)) {
+            if (ability.requiredRebirths > gameState.rebirths) {
+                section.innerHTML += `
+                    <div class="ability-upgrade-box">
+                        <h3>🔒 ${ability.icon} ${ability.name}</h3>
+                        <div class="locked-message" style="padding:10px; margin:0;">
+                            Откроется после ${ability.requiredRebirths} перерождения
+                        </div>
+                    </div>
+                `;
+                continue;
+            }
+
+            if (!gameState.unlockedAbilities.includes(abilityId)) {
+                gameState.unlockedAbilities.push(abilityId);
+            }
+
+            const damageCost = (gameState.abilityUpgrades[abilityId].damage + 1) * 500000;
+            const cooldownCost = (gameState.abilityUpgrades[abilityId].cooldown + 1) * 250000;
+
+            const isActive = currentAbility === abilityId;
+
+            section.innerHTML += `
+                <div class="ability-upgrade-box" style="${isActive ? 'border-color: var(--success);' : ''}">
+                    <h3 style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>${ability.icon} ${ability.name}</span>
+                        ${!isActive ? `<button class="btn-upgrade-ability" style="width:auto; padding:5px 10px; font-size:0.75rem;" onclick="switchAbility('${abilityId}')">ВЫБРАТЬ</button>` : '<span style="color:var(--success); font-size:0.8rem;">АКТИВНА</span>'}
+                    </h3>
+                    <div class="ability-stat">
+                        <span>Множитель:</span>
+                        <span style="color:var(--warning); font-weight:bold">×${getAbilityMultiplier(abilityId)}</span>
+                    </div>
+                    <div class="ability-stat">
+                        <span>Кулдаун:</span>
+                        <span style="color:var(--warning); font-weight:bold">${(getAbilityCooldown(abilityId) / 1000).toFixed(1)}s</span>
+                    </div>
+                    <button class="btn-upgrade-ability" onclick="upgradeAbility('${abilityId}', 'damage')" 
+                        ${gameState.gold < damageCost ? 'disabled' : ''}>
+                        ⬆️ Урон (Lvl ${gameState.abilityUpgrades[abilityId].damage}) - ${formatNumber(damageCost)}
+                    </button>
+                    <button class="btn-upgrade-ability" onclick="upgradeAbility('${abilityId}', 'cooldown')" 
+                        ${gameState.gold < cooldownCost ? 'disabled' : ''}>
+                        ⏱️ Кулдаун (Lvl ${gameState.abilityUpgrades[abilityId].cooldown}) - ${formatNumber(cooldownCost)}
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    function switchAbility(abilityId) {
+        currentAbility = abilityId;
+        const ability = ABILITIES[abilityId];
+        document.getElementById('ability-text').textContent = ability.name;
+        renderAbilityUpgrades();
+    }
+
+    function upgradeAbility(abilityId, type) {
+        let cost;
+        
+        if (type === 'damage') {
+            cost = (gameState.abilityUpgrades[abilityId].damage + 1) * 500000;
+            if (gameState.gold >= cost) {
+                gameState.gold -= cost;
+                gameState.abilityUpgrades[abilityId].damage++;
+            }
+        } else if (type === 'cooldown') {
+            cost = (gameState.abilityUpgrades[abilityId].cooldown + 1) * 250000;
+            if (gameState.gold >= cost) {
+                gameState.gold -= cost;
+                gameState.abilityUpgrades[abilityId].cooldown++;
+            }
+        }
+
+        renderAbilityUpgrades();
+        updateUI();
+        saveGame();
+    }
+
+    // ========== SIDEBAR LOGIC ==========
+    
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+        
+        if (sidebar.classList.contains('open')) {
+            updateSidebarStats();
+            renderAbilityUpgrades();
+            
+            if (currentTab === 'click') renderClickTab();
+            if (currentTab === 'passive') renderPassiveTab();
+            if (currentTab === 'shop') renderShopTab();
+            if (currentTab === 'craft') renderCraftTab();
+            if (currentTab === 'recipes') renderRecipesTab();
+        }
+    }
+
+    function updateSidebarStats() {
+        document.getElementById('sidebar-username').textContent = currentUser;
+        document.getElementById('sidebar-gold').textContent = formatNumber(gameState.gold);
+        document.getElementById('sidebar-dpc').textContent = formatNumber(gameState.clickDamage);
+        document.getElementById('sidebar-dps').textContent = formatNumber(gameState.autoDamage);
+        
+        document.getElementById('rebirth-level').textContent = gameState.rebirths;
+        document.getElementById('rebirth-mult').textContent = '×' + getRebirthMultiplier().toFixed(1);
+        
+        const rebirthCost = getRebirthCost();
+        document.getElementById('rebirth-cost').textContent = formatNumber(rebirthCost);
+        document.getElementById('btn-rebirth').disabled = gameState.gold < rebirthCost;
+    }
+
+    // ========== AUTH SYSTEM ==========
+    
+    let currentUser = null;
+
+    function showLogin() {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('register-form').style.display = 'none';
+        clearErrors();
+    }
+
+    function showRegister() {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+        clearErrors();
+    }
+
+    function clearErrors() {
+        document.getElementById('login-error').textContent = '';
+        document.getElementById('register-error').textContent = '';
+    }
+
+    function handleRegister() {
+        const username = document.getElementById('reg-username').value.trim();
+        const pass1 = document.getElementById('reg-password').value;
+        const pass2 = document.getElementById('reg-password2').value;
+        const errorEl = document.getElementById('register-error');
+
+        if (username.length < 3 || username.length > 16) {
+            errorEl.textContent = '❌ Ник должен быть от 3 до 16 символов';
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            errorEl.textContent = '❌ Только буквы, цифры и _ (как в Minecraft)';
+            return;
+        }
+
+        if (pass1.length < 4) {
+            errorEl.textContent = '❌ Пароль слишком короткий (минимум 4 символа)';
+            return;
+        }
+
+        if (pass1 !== pass2) {
+            errorEl.textContent = '❌ Пароли не совпадают';
+            return;
+        }
+
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        if (users[username]) {
+            errorEl.textContent = '❌ Этот ник уже занят';
+            return;
+        }
+
+        users[username] = {
+            password: pass1,
+            createdAt: Date.now()
+        };
+        localStorage.setItem('users', JSON.stringify(users));
+
+        currentUser = username;
+        localStorage.setItem('currentUser', username);
+        enterGame();
+    }
+
+    function handleLogin() {
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+        const errorEl = document.getElementById('login-error');
+
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+
+        if (!users[username]) {
+            errorEl.textContent = '❌ Пользователь не найден';
+            return;
+        }
+
+        if (users[username].password !== password) {
+            errorEl.textContent = '❌ Неверный пароль';
+            return;
+        }
+
+        currentUser = username;
+        localStorage.setItem('currentUser', username);
+        enterGame();
+    }
+
+    function logout() {
+        if (confirm('Выйти из аккаунта?\n\nТвой прогресс сохранён.')) {
+            if (gameLoopInterval) {
+                clearInterval(gameLoopInterval);
+                gameLoopInterval = null;
+            }
+
+            if (enemyMoveInterval) {
+                clearInterval(enemyMoveInterval);
+                enemyMoveInterval = null;
+            }
+
+            saveGame();
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            gameState = createNewGameState();
+            craftingSlots = Array(9).fill(null);
+            selectedMaterial = null;
+            currentTab = 'main';
+            currentAbility = 'ability1';
+            
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            
+            showLogin();
+        }
+    }
+
+    function enterGame() {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'flex';
+        initGame();
+        startEnemyMovement();
+    }
+
+    window.onload = function() {
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            currentUser = savedUser;
+            enterGame();
+        }
+    };
+
+    // ========== REBIRTH SYSTEM ==========
+
+    function getRebirthCost() {
+        return 10000000 * Math.pow(10, gameState.rebirths);
+    }
+
+    function getRebirthMultiplier() {
+        return 1 + (gameState.rebirths * 0.5);
+    }
+
+    function doRebirth() {
+        const cost = getRebirthCost();
+        
+        if (gameState.gold < cost) {
+            alert('❌ Недостаточно золота для перерождения!');
+            return;
+        }
+
+        if (!confirm(`🔄 Переродиться?\n\nВы потеряете всё золото, улучшения и материалы, но получите множитель урона ×${(getRebirthMultiplier() + 0.5).toFixed(1)}\n\n⭐ ${gameState.rebirths === 0 ? 'Откроется магазин, верстак, крафты и прокачка способностей!' : 'Продолжай становиться сильнее!'}`)) {
+            return;
+        }
+
+        gameState.gold = 0;
+        gameState.clickDamage = 1;
+        gameState.autoDamage = 0;
+        gameState.rebirths++;
+
+        for (let key in gameState.materials) {
+            gameState.materials[key] = 0;
+        }
+
+        for (let key in gameState.upgrades) {
+            gameState.upgrades[key].level = 0;
+        }
+        for (let key in gameState.minions) {
+            gameState.minions[key].level = 0;
+        }
+
+        craftingSlots = Array(9).fill(null);
+
+        recalculateStats();
+        renderAbilityUpgrades();
+        renderClickTab();
+        renderPassiveTab();
+        updateUI();
+        saveGame();
+
+        alert(`✅ Перерождение ${gameState.rebirths} завершено!\nМножитель: ×${getRebirthMultiplier().toFixed(1)}`);
+    }
+
+    function recalculateStats() {
+        const mult = getRebirthMultiplier();
+        
+        gameState.clickDamage = 1;
+        gameState.autoDamage = 0;
+
+        for (let key in gameState.upgrades) {
+            const item = gameState.upgrades[key];
+            gameState.clickDamage += item.level * item.dmg * mult;
+        }
+
+        for (let key in gameState.minions) {
+            const item = gameState.minions[key];
+            gameState.autoDamage += item.level * item.dps * mult;
+        }
+    }
+
+    // ========== CORE GAME ==========
+
+    function initGame() {
+        loadGame();
+        recalculateStats();
+        updateUI();
+        
+        renderClickTab();
+        renderPassiveTab();
+        
+        if (gameLoopInterval) {
+            clearInterval(gameLoopInterval);
+        }
+        
+        gameLoopInterval = setInterval(() => {
+            if (gameState.autoDamage > 0) {
+                addGold(gameState.autoDamage);
+            }
+            saveGame();
+        }, 1000);
+    }
+
+    function addGold(amount) {
+        gameState.gold += amount;
+        updateUI();
+    }
+
+    function playerClick(event) {
+        if (!checkClickRate()) return;
+
+        const mult = getRebirthMultiplier();
+        const dmg = gameState.clickDamage * mult;
+        doDamage(dmg, event.clientX, event.clientY, '#fff');
+        
+        const enemy = document.getElementById('enemy-btn');
+        const currentTransform = enemy.style.transform || '';
+        enemy.style.transform = currentTransform.replace('scale(1)', 'scale(0.92)');
+        setTimeout(() => {
+            enemy.style.transform = currentTransform.replace('scale(0.92)', 'scale(1)');
+        }, 50);
+    }
+
+    function doDamage(amount, x, y, color) {
+        addGold(amount);
+        createFloatingText({clientX: x, clientY: y}, `+${formatNumber(amount)}`, color);
+    }
+
+    function activateAbility() {
+        if (!abilityReady) return;
+
+        const mult = getRebirthMultiplier();
+        const abilityMult = getAbilityMultiplier(currentAbility);
+        const dmg = gameState.clickDamage * abilityMult * mult;
+        const enemy = document.getElementById('enemy-btn');
+        const rect = enemy.getBoundingClientRect();
+        
+        doDamage(dmg, rect.left + rect.width/2, rect.top + rect.height/2, '#ff00e6');
+        startCooldown();
+    }
+
+    function startCooldown() {
+        abilityReady = false;
+        const btn = document.getElementById('ability-btn');
+        const fill = document.getElementById('ability-fill');
+        const text = document.getElementById('ability-text');
+        
+        btn.classList.add('disabled');
+        
+        const cooldown = getAbilityCooldown(currentAbility);
+        let timeLeft = cooldown;
+        const updateInterval = 50;
+
+        fill.style.width = '0%';
+
+        abilityTimerId = setInterval(() => {
+            timeLeft -= updateInterval;
+            
+            const percentage = ((cooldown - timeLeft) / cooldown) * 100;
+            fill.style.width = `${percentage}%`;
+            text.innerText = `${(timeLeft / 1000).toFixed(1)}s`;
+
+            if (timeLeft <= 0) {
+                clearInterval(abilityTimerId);
+                abilityReady = true;
+                btn.classList.remove('disabled');
+                text.innerText = ABILITIES[currentAbility].name;
+                fill.style.width = '100%';
+            }
+        }, updateInterval);
+    }
+
+    function buyUpgrade(type, key) {
+        const item = gameState[type][key];
+        const cost = Math.floor(item.baseCost * Math.pow(item.costMult, item.level));
+
+        if (gameState.gold >= cost) {
+            gameState.gold -= cost;
+            item.level++;
+            
+            const mult = getRebirthMultiplier();
+            
+            if (type === 'upgrades') {
+                gameState.clickDamage += item.dmg * mult;
+            } else {
+                gameState.autoDamage += item.dps * mult;
+            }
+            
+            if (currentTab === 'click') renderClickTab();
+            if (currentTab === 'passive') renderPassiveTab();
+            updateUI();
+            saveGame();
+        }
+    }
+
+    function updateUI() {
+        const mult = getRebirthMultiplier();
+        
+        document.getElementById('gold-display').innerText = formatNumber(gameState.gold);
+        document.getElementById('dpc-display').innerText = formatNumber(gameState.clickDamage * mult);
+        document.getElementById('dps-display').innerText = formatNumber(gameState.autoDamage);
+    }
+
+    function createFloatingText(eventObj, text, color) {
+        const el = document.createElement('div');
+        el.className = 'damage-text';
+        el.innerText = text;
+        el.style.color = color;
+        
+        el.style.left = `${eventObj.clientX}px`;
+        el.style.top = `${eventObj.clientY}px`;
+        
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 600);
+    }
+
+    function saveGame() {
+        if (!currentUser) return;
+        const saveKey = `game_${currentUser}`;
+        localStorage.setItem(saveKey, JSON.stringify(gameState));
+    }
+
+    function loadGame() {
+        if (!currentUser) return;
+        const saveKey = `game_${currentUser}`;
+        const save = localStorage.getItem(saveKey);
+        
+        if (save) {
+            const loadedState = JSON.parse(save);
+            gameState = createNewGameState();
+            Object.assign(gameState, loadedState);
+            
+            if (!gameState.unlockedAbilities) {
+                gameState.unlockedAbilities = ['ability1'];
+            }
+            
+            for (let abilityId of Object.keys(ABILITIES)) {
+                if (!gameState.abilityUpgrades[abilityId]) {
+                    gameState.abilityUpgrades[abilityId] = { damage: 0, cooldown: 0 };
+                }
+            }
+        } else {
+            gameState = createNewGameState();
+        }
+    }
+</script>
+</body>
+</html>
