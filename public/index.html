@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Void Clicker - Mega Edition</title>
+    <style>
+        :root {
+            --bg-color: #0d0015;
+            --panel-bg: #1a0525;
+            --card-bg: #2d0b42;
+            --primary: #bf00ff;
+            --accent: #ff00e6;
+            --text-main: #e0ccff;
+            --text-dim: #9e8fb2;
+            --error: #ff4444;
+            --success: #00ff88;
+            --warning: #ffaa00;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* === SIDEBAR MENU === */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -420px;
+            width: 420px;
+            height: 100%;
+            background: linear-gradient(180deg, #1a0525 0%, #0d0015 100%);
+            border-right: 2px solid var(--primary);
+            box-shadow: 5px 0 30px rgba(191, 0, 255, 0.5);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar.open { left: 0; }
+
+        .sidebar-content {
+            padding: 20px;
+            flex: 1;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 15px;
+        }
+
+        .sidebar-header h2 {
+            color: var(--accent);
+            margin: 0;
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .sidebar-user {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* TABS */
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4a1c6e;
+        }
+
+        .tab {
+            padding: 10px 5px;
+            background: rgba(45, 11, 66, 0.5);
+            border: 1px solid #4a1c6e;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+            font-size: 0.75rem;
+        }
+
+        .tab:hover {
+            background: rgba(45, 11, 66, 0.8);
+        }
+
+        .tab.active {
+            background: var(--card-bg);
+            border-color: var(--primary);
+            color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .menu-section {
+            margin-bottom: 25px;
+        }
+
+        .menu-title {
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #4a1c6e;
+            padding-bottom: 5px;
+        }
+
+        .stat-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .stat-value {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* REBIRTH SECTION */
+        .rebirth-box {
+            background: rgba(191, 0, 255, 0.1);
+            border: 2px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .rebirth-box h3 {
+            margin: 0 0 10px 0;
+            color: var(--success);
+            text-shadow: 0 0 10px var(--success);
+        }
+
+        .rebirth-info {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .rebirth-multiplier {
+            color: var(--success);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .btn-rebirth {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(90deg, var(--success), #00cc66);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-rebirth:hover:not(:disabled) {
+            box-shadow: 0 0 20px var(--success);
+            transform: translateY(-2px);
+        }
+
+        .btn-rebirth:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        /* UPGRADES IN SIDEBAR */
+        .upgrade-mini {
+            background: var(--card-bg);
+            border: 1px solid #4a1c6e;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .upgrade-mini:hover {
+            border-color: var(--accent);
+        }
+
+        .upgrade-name {
+            flex: 1;
+        }
+
+        .upgrade-level {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+
+        .btn-buy-mini {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .btn-buy-mini:hover:not(:disabled) {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .btn-buy-mini:disabled {
+            border-color: #444;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        /* LEADERBOARD */
+        .leaderboard-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-tab {
+            padding: 8px 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            color: var(--text-main);
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+
+        .leaderboard-tab:hover {
+            background: var(--panel-bg);
+        }
+
+        .leaderboard-tab.active {
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* ACHIEVEMENTS */
+        .achievement-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 8px 0;
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            opacity: 0.6;
+        }
+
+        .achievement-item.unlocked {
+            opacity: 1;
+            border-color: var(--success);
+            background: linear-gradient(135deg, var(--card-bg), rgba(0, 255, 136, 0.1));
+        }
+
+        .achievement-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .achievement-icon {
+            font-size: 1.5rem;
+        }
+
+        .achievement-name {
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .achievement-desc {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .achievement-reward {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* MATERIALS */
+        .materials-display {
+            background: rgba(45, 11, 66, 0.6);
+            border: 1px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .material-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #4a1c6e;
+        }
+
+        .material-item:last-child {
+            border-bottom: none;
+        }
+
+        .shop-item {
+            background: var(--card-bg);
+            border: 1px solid #4a1c6e;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-item:hover {
+            border-color: var(--accent);
+        }
+
+        .btn-buy-shop {
+            background: transparent;
+            color: var(--success);
+            border: 1px solid var(--success);
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .btn-buy-shop:hover:not(:disabled) {
+            background: var(--success);
+            color: #000;
+        }
+
+        .btn-buy-shop:disabled {
+            border-color: #444;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        /* CRAFTING */
+        .crafting-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .craft-slot {
+            aspect-ratio: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #4a1c6e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 2rem;
+        }
+
+        .craft-slot:hover {
+            border-color: var(--primary);
+            background: rgba(191, 0, 255, 0.1);
+        }
+
+        .craft-slot.filled {
+            border-color: var(--accent);
+            background: rgba(255, 0, 230, 0.2);
+        }
+
+        .material-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .material-btn {
+            padding: 10px;
+            background: var(--card-bg);
+            border: 1px solid #4a1c6e;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .material-btn:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .material-btn.selected {
+            border-color: var(--success);
+            background: rgba(0, 255, 136, 0.2);
+        }
+
+        /* RECIPE BOOK */
+        .recipe-item {
+            background: var(--card-bg);
+            border: 1px solid #4a1c6e;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+
+        .recipe-item.unlocked {
+            border-color: var(--success);
+        }
+
+        .recipe-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .recipe-pattern {
+            display: grid;
+            grid-template-columns: repeat(3, 30px);
+            gap: 3px;
+            margin: 10px 0;
+        }
+
+        .recipe-pattern-slot {
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #4a1c6e;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .locked-message {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-style: italic;
+            padding: 20px;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            border-radius: 8px;
+        }
+
+        .btn-logout-sidebar {
+            background: transparent;
+            border: 2px solid var(--error);
+            color: var(--error);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: 0.3s;
+            text-transform: uppercase;
+            margin: 20px;
+        }
+
+        .btn-logout-sidebar:hover {
+            background: var(--error);
+            color: #fff;
+            box-shadow: 0 0 20px var(--error);
+        }
+
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(191, 0, 255, 0.3);
+        }
+
+        .menu-toggle:hover {
+            box-shadow: 0 0 25px var(--primary);
+            transform: scale(1.05);
+        }
+
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 998;
+            display: none;
+        }
+
+        .overlay.active { display: block; }
+
+        /* === AUTH SCREEN === */
+        .auth-screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #1a0525 0%, #000 100%);
+        }
+
+        .auth-box {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 40px;
+            width: 400px;
+            box-shadow: 0 0 50px rgba(191, 0, 255, 0.4);
+        }
+
+        .auth-box h1 {
+            text-align: center;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--primary);
+            border-radius: 5px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 38px;
+            cursor: pointer;
+            color: var(--accent);
+            font-size: 0.85rem;
+            user-select: none;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+        }
+
+        .btn-auth {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 15px;
+            font-family: inherit;
+        }
+
+        .btn-auth:hover {
+            box-shadow: 0 0 20px var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .error-msg {
+            color: var(--error);
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .switch-text {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-dim);
+        }
+
+        .switch-text a {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* === GAME SCREEN === */
+        .game-container { 
+            display: none;
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .game-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: radial-gradient(circle at center, #1a0525 0%, #000 100%);
+        }
+
+        h1 { 
+            color: var(--primary); 
+            text-shadow: 0 0 10px var(--primary);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-box {
+            background: rgba(45, 11, 66, 0.8);
+            border: 1px solid var(--primary);
+            padding: 20px;
+            border-radius: 12px;
+            width: 80%;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(191, 0, 255, 0.2);
+        }
+
+        .resource {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            text-shadow: 0 0 5px var(--accent);
+        }
+
+        .enemy-container {
+            position: relative;
+            width: 400px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .enemy {
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle, var(--primary), #240030);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.05s ease;
+            box-shadow: 0 0 40px var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            border: 2px solid #fff;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-left: -80px;
+            margin-top: -80px;
+        }
+
+        .enemy:active { transform: scale(0.92); }
+
+        .ability-container {
+            width: 80%;
+            margin-top: 30px;
+            height: 60px;
+            background: #222;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(191, 0, 255, 0.3);
+            transition: all 0.2s;
+        }
+
+        .ability-fill {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 100%;
+            background: linear-gradient(90deg, #5e0080, var(--primary));
+            z-index: 1;
+            transition: width 0.1s linear;
+        }
+
+        .ability-text {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .ability-container.disabled {
+            cursor: not-allowed;
+            border-color: #555;
+            box-shadow: none;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        .damage-text {
+            position: absolute;
+            font-weight: 900;
+            pointer-events: none;
+            animation: floatUp 0.6s ease-out forwards;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px #000;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1a0525; }
+        ::-webkit-scrollbar-thumb { background: #4a1c6e; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<!-- ========== AUTH SCREEN ========== -->
+<div id="auth-screen" class="auth-screen">
+    <div class="auth-box">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="/images/logo.png" alt="Server Logo" style="max-width: 200px; height: auto; border-radius: 10px;">
+        </div>
+        <div id="login-form">
+            <h1>🎮 ВХОД В ИГРУ</h1>
+            <div class="input-group">
+                <label>Minecraft Ник</label>
+                <input type="text" id="login-username" placeholder="Steve123" maxlength="16">
+            </div>
+            <div class="input-group">
+                <label>Пароль</label>
+                <input type="password" id="login-password" placeholder="••••••••">
+                <span class="password-toggle" onclick="togglePassword('login-password')">👁️ Показать</span>
+            </div>
+            <button class="btn-auth" onclick="handleLogin()">ВОЙТИ</button>
+            <div class="switch-text">
+                Нет аккаунта? <a onclick="showRegister()">Зарегистрироваться</a>
+            </div>
+            <div id="login-error" class="error-msg"></div>
+        </div>
+
+        <div id="register-form" style="display:none;">
+            <h1>📝 РЕГИСТРАЦИЯ</h1>
+            <div class="input-group">
+                <label>Minecraft Ник (3-16 символов)</label>
+                <input type="text" id="reg-username" placeholder="Notch" maxlength="16">
+            </div>
+            <div class="input-group">
+                <label>Пароль (минимум 4 символа)</label>
+                <input type="password" id="reg-password" placeholder="••••••••">
+                <span class="password-toggle" onclick="togglePassword('reg-password')">👁️ Показать</span>
+            </div>
+            <div class="input-group">
+                <label>Повтори пароль</label>
+                <input type="password" id="reg-password2" placeholder="••••••••">
+                <span class="password-toggle" onclick="togglePassword('reg-password2')">👁️ Показать</span>
+            </div>
+            <button class="btn-auth" onclick="handleRegister()">СОЗДАТЬ АККАУНТ</button>
+            <div class="switch-text">
+                Уже есть аккаунт? <a onclick="showLogin()">Войти</a>
+            </div>
+            <div id="register-error" class="error-msg"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== GAME SCREEN ========== -->
+<div id="game-screen" class="game-container">
+    
+    <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR MENU -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h2>⚔️ МЕНЮ</h2>
+                <div class="sidebar-user">Игрок: <span id="sidebar-username"></span></div>
+            </div>
+
+            <!-- TABS -->
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('main')">📊 Главное</div>
+                <div class="tab" onclick="switchTab('click')">⚔️ За клик</div>
+                <div class="tab" onclick="switchTab('passive')">🌀 Пассивный</div>
+                <div class="tab" onclick="switchTab('shop')" id="tab-shop">🛒 Магазин</div>
+                <div class="tab" onclick="switchTab('craft')" id="tab-craft">🔨 Верстак</div>
+                <div class="tab" onclick="switchTab('recipes')" id="tab-recipes">📖 Рецепты</div>
+                <div class="tab" onclick="switchTab('rebirth')">💎 Перерождение</div>
+                <div class="tab" onclick="switchTab('leaderboard')">🏆 Лидерборд</div>
+                <div class="tab" onclick="switchTab('achievements')">🏅 Достижения</div>
+            </div>
+
+            <!-- TAB: MAIN -->
+            <div id="content-main" class="tab-content active">
+                <div class="rebirth-box">
+                    <h3>🔄 ПЕРЕРОЖДЕНИЕ</h3>
+                    <div class="rebirth-info">
+                        Уровень: <span class="rebirth-multiplier" id="rebirth-level">0</span><br>
+                        Множитель: <span class="rebirth-multiplier" id="rebirth-mult">×1</span><br>
+                        Точки перерождения: <span class="rebirth-multiplier" id="rebirth-points">0</span><br>
+                        <span style="font-size:0.75rem">Требуется: <span id="rebirth-cost">10M</span> эссенций</span>
+                    </div>
+                    <button id="btn-rebirth" class="btn-rebirth" onclick="doRebirth()">
+                        Переродиться
+                    </button>
+                </div>
+
+                <div class="menu-section">
+                    <div class="menu-title">📊 Статистика</div>
+                    <div class="stat-display">
+                        <span class="stat-label">Золото:</span>
+                        <span class="stat-value" id="sidebar-gold">0</span>
+                    </div>
+                    <div class="stat-display">
+                        <span class="stat-label">Урон/клик:</span>
+                        <span class="stat-value" id="sidebar-dpc">1</span>
+                    </div>
+                    <div class="stat-display">
+                        <span class="stat-label">Урон/сек:</span>
+                        <span class="stat-value" id="sidebar-dps">0</span>
+                    </div>
+                    <div class="stat-display">
+                        <span class="stat-label">Очки перерождения:</span>
+                        <span class="stat-value" id="sidebar-rp">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: CLICK DAMAGE -->
+            <div id="content-click" class="tab-content">
+                <div class="menu-title">⚔️ УЛУЧШЕНИЯ УРОНА ЗА КЛИК</div>
+                <div id="click-upgrades-tab"></div>
+            </div>
+
+            <!-- TAB: PASSIVE DAMAGE -->
+            <div id="content-passive" class="tab-content">
+                <div class="menu-title">🌀 ПАССИВНЫЕ УЛУЧШЕНИЯ</div>
+                <div id="passive-upgrades-tab"></div>
+            </div>
+
+            <!-- TAB: SHOP -->
+            <div id="content-shop" class="tab-content">
+                <div id="shop-lock-message"></div>
+                <div class="materials-display" id="materials-display"></div>
+                <div id="shop-items"></div>
+            </div>
+
+            <!-- TAB: CRAFT -->
+            <div id="content-craft" class="tab-content">
+                <div id="craft-lock-message"></div>
+                <div id="craft-grid" style="padding: 20px;"></div>
+            </div>
+
+            <!-- TAB: RECIPES -->
+            <div id="content-recipes" class="tab-content">
+                <div id="recipes-lock-message"></div>
+                <div id="recipes-list"></div>
+            </div>
+
+            <!-- TAB: REBIRTH UPGRADES -->
+            <div id="content-rebirth" class="tab-content">
+                <div class="menu-title">💎 Улучшения за очки перерождения</div>
+                <div id="ability-upgrades-section"></div>
+                <div id="shop-items"></div>
+            </div>
+
+            <!-- TAB: LEADERBOARD -->
+            <div id="content-leaderboard" class="tab-content">
+                <div class="menu-title">🏆 Лидерборды</div>
+                <div class="leaderboard-tabs">
+                    <button class="leaderboard-tab active" onclick="switchLeaderboard('rebirths')">Перерождения</button>
+                    <button class="leaderboard-tab" onclick="switchLeaderboard('gold')">Золото</button>
+                    <button class="leaderboard-tab" onclick="switchLeaderboard('clickDamage')">Урон/Клик</button>
+                    <button class="leaderboard-tab" onclick="switchLeaderboard('autoDamage')">DPS</button>
+                </div>
+                <div id="leaderboard-list"></div>
+            </div>
+
+            <!-- TAB: ACHIEVEMENTS -->
+            <div id="content-achievements" class="tab-content">
+                <div class="menu-title">🏅 Достижения</div>
+                <div id="achievements-list"></div>
+            </div>
+
+        </div>
+
+        <button class="btn-logout-sidebar" onclick="logout()">🚪 ВЫЙТИ</button>
+    </div>
+
+    <div class="menu-toggle" onclick="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="game-main">
+        <div class="center-panel">
+            <h1>VOID CLICKER</h1>
+            
+            <div class="stats-box">
+                <div style="color:var(--text-dim)">Эссенция</div>
+                <div class="resource" id="gold-display">0</div>
+            </div>
+            
+            <div class="stats-box">
+                <div style="color:var(--text-dim)">Энергия</div>
+                <div class="resource" id="energy-display">20/20</div>
+            </div>
+            
+            <div class="stats-box" style="display:flex; justify-content: space-around;">
+                <div>DPS: <span id="dps-display" style="color:var(--primary)">0</span></div>
+                <div>Click: <span id="dpc-display" style="color:var(--primary)">1</span></div>
+            </div>
+
+            <div class="enemy-container">
+                <div class="enemy" id="enemy-btn" onclick="playerClick(event)">👁️</div>
+            </div>
+            
+            <div id="ability-btn" class="ability-container" onclick="activateAbility()">
+                <div id="ability-fill" class="ability-fill"></div>
+                <div id="ability-text" class="ability-text">SUPER HIT</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="game-script-new.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedToken = localStorage.getItem('token');
+        const savedUser = localStorage.getItem('user');
+
+        if (savedToken && savedUser) {
+            token = savedToken;
+            currentUser = JSON.parse(savedUser).username;
+            enterGame();
+        }
+    });
+</script>
+</body>
+</html>
